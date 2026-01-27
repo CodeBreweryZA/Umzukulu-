@@ -1,3 +1,5 @@
+// Note: The original path had "js\js\", which appears to be a typo. Assuming it should be "js\api.js". If this file is intended to be used, add <script src="js/api.js"></script> to your Index.html before the other JS files.
+
 const API_URL = 'http://localhost:5000/api';
 
 class API {
@@ -30,12 +32,13 @@ class API {
                 headers
             });
             
-            const data = await response.json();
-            
+            // Check if response is ok before parsing JSON to avoid errors on non-JSON responses (e.g., HTML error pages)
             if (!response.ok) {
-                throw new Error(data.error || 'Request failed');
+                const errorText = await response.text();
+                throw new Error(errorText || `Request failed with status ${response.status}`);
             }
             
+            const data = await response.json();
             return data;
         } catch (error) {
             console.error('API Error:', error);
