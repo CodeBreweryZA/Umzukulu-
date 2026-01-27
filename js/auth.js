@@ -1,3 +1,4 @@
+
 // Authentication JavaScript
 document.addEventListener('DOMContentLoaded', function() {
     // Setup auth forms if they exist
@@ -11,11 +12,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (registerForm) {
         registerForm.addEventListener('submit', handleRegister);
     }
+    
+    // Check auth status on page load
+    checkAuthStatus();
 });
 
-function handleLogin(e) {
+async function handleLogin(e) {
     e.preventDefault();
-    
+
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
     
@@ -54,7 +58,7 @@ function handleLogin(e) {
     }, 1500);
 }
 
-function handleRegister(e) {
+async function handleRegister(e) {
     e.preventDefault();
     
     const name = document.getElementById('registerName').value;
@@ -108,6 +112,36 @@ function handleRegister(e) {
     setTimeout(() => {
         window.location.href = 'dashboard.html';
     }, 1500);
+}
+
+// Check auth status
+function checkAuthStatus() {
+    const user = localStorage.getItem('eternalRestUser');
+    
+    if (user) {
+        // User is logged in
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        
+        if (loginBtn) loginBtn.textContent = 'Dashboard';
+        if (registerBtn) registerBtn.textContent = 'Logout';
+        
+        // Update event listeners
+        if (loginBtn) {
+            loginBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = 'dashboard.html';
+            });
+        }
+        
+        if (registerBtn) {
+            registerBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.removeItem('eternalRestUser');
+                window.location.reload();
+            });
+        }
+    }
 }
 
 // Reuse the showNotification function from app.js
@@ -199,125 +233,4 @@ function showNotification(message, type = 'info') {
             setTimeout(() => notification.remove(), 300);
         }
     }, 5000);
-}
-// Update these URLs to match your backend
-const API_URL = 'http://localhost:5000/api';
-
-async function handleLogin(e) {
-    e.preventDefault();
-    
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    
-    try {
-        const response = await fetch(`${'http://localhost:5000/api'}/auth/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email, password })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            // Save token and user data
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            
-            showNotification('Login successful!', 'success');
-            
-            // Close modal and redirect
-            const authModal = document.getElementById('authModal');
-            if (authModal) authModal.classList.remove('active');
-            
-            setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 1500);
-        } else {
-            showNotification(data.error || 'Login failed', 'error');
-        }
-    } catch (error) {
-        console.error('Login error:', error);
-        showNotification('Error connecting to server', 'error');
-    }
-}
-
-async function handleRegister(e) {
-    e.preventDefault();
-    
-    const name = document.getElementById('registerName').value;
-    const email = document.getElementById('registerEmail').value;
-    const password = document.getElementById('registerPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    
-    if (password !== confirmPassword) {
-        showNotification('Passwords do not match', 'error');
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_URL}/auth/register`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ name, email, password })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            // Save token and user data
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            
-            showNotification('Registration successful!', 'success');
-            
-            // Close modal and redirect
-            const authModal = document.getElementById('authModal');
-            if (authModal) authModal.classList.remove('active');
-            
-            setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 1500);
-        } else {
-            showNotification(data.error || 'Registration failed', 'error');
-        }
-    } catch (error) {
-        console.error('Registration error:', error);
-        showNotification('Error connecting to server', 'error');
-    }
-}
-
-// Check auth status
-function checkAuthStatus() {
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
-    
-    if (token && user) {
-        // User is logged in
-        const loginBtn = document.getElementById('loginBtn');
-        const registerBtn = document.getElementById('registerBtn');
-        
-        if (loginBtn) loginBtn.textContent = 'Dashboard';
-        if (registerBtn) registerBtn.textContent = 'Logout';
-        
-        // Update event listeners
-        if (loginBtn) {
-            loginBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                window.location.href = 'dashboard.html';
-            });
-        }
-        
-        if (registerBtn) {
-            registerBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                window.location.reload();
-            });
-        }
-    }
 }
